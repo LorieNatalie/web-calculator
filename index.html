@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Web Calculator</title>
+    <title>Web Calculator with History</title>
 </head>
 <body>
-    <h1>Frontend & Backend Calculator</h1>
-    <input type="number" id="num1" placeholder="First number">
-    <input type="number" id="num2" placeholder="Second number">
+    <h1>Calculator with History</h1>
+    <input type="number" id="num1" placeholder="First number" />
+    <input type="number" id="num2" placeholder="Second number" />
     <select id="operation">
         <option value="+">Add (+)</option>
         <option value="-">Subtract (-)</option>
@@ -14,8 +14,11 @@
         <option value="/">Divide (/)</option>
     </select>
     <button onclick="calculate()">Calculate</button>
-
     <h2>Result: <span id="result"></span></h2>
+
+    <h2>Calculation History</h2>
+    <button onclick="loadHistory()">Load History</button>
+    <ul id="history"></ul>
 
     <script>
         function calculate() {
@@ -25,23 +28,38 @@
 
             fetch('http://127.0.0.1:5000/calculate', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({num1: num1, num2: num2, operation: operation}),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ num1: num1, num2: num2, operation: operation }),
             })
-            .then(response => response.json())
+            .then(res => res.json())
             .then(data => {
-                if(data.error){
+                if (data.error) {
                     document.getElementById('result').innerText = 'Error: ' + data.error;
                 } else {
                     document.getElementById('result').innerText = data.result;
                 }
             })
-            .catch(error => {
+            .catch(() => {
                 document.getElementById('result').innerText = 'Error connecting to backend.';
             });
         }
+
+        function loadHistory() {
+            fetch('http://127.0.0.1:5000/history')
+            .then(res => res.json())
+            .then(data => {
+                const ul = document.getElementById('history');
+                ul.innerHTML = '';
+                data.forEach(item => {
+                    const li = document.createElement('li');
+                    li.innerText = `${item.num1} ${item.operation} ${item.num2} = ${item.result} (${item.timestamp})`;
+                    ul.appendChild(li);
+                });
+            });
+        }
+
+        // Load history when page loads
+        window.onload = loadHistory;
     </script>
 </body>
 </html>
